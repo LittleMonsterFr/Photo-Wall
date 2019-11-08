@@ -4,19 +4,32 @@ from point2D import Point2D
 
 class Photo:
 
-    def __init__(self, width, height, x, y, name):
+    def __init__(self, width, height, name):
         self.width = width
         self.height = height
-        self.blp = Point2D(x, y)
+        self.__blp = None
         self.name = name
-        self.shape = Rectangle((x, y), width, height, fill=False)
-        self.tl = Point2D(self.blp.x, self.blp.y + self.height)
-        self.tr = Point2D(self.blp.x + self.width, self.blp.y + self.height)
-        self.br = Point2D(self.blp.x + self.width, self.blp.y)
-        self.bl = Point2D(self.blp.x, self.blp.y)
+        self.shape = None
+        self.__tl = None
+        self.__tr = None
+        self.__br = None
+        self.__bl = None
 
     def get_corners(self):
-        return [self.tl, self.tr, self.br, self.bl]
+        return [self.__tl, self.__tr, self.__br, self.__bl]
+
+    @property
+    def blp(self):
+        return self.__blp
+
+    @blp.setter
+    def blp(self, value):
+        self.__blp = value
+        self.__tl = Point2D(self.blp.x, self.blp.y + self.height)
+        self.__tr = Point2D(self.blp.x + self.width, self.blp.y + self.height)
+        self.__br = Point2D(self.blp.x + self.width, self.blp.y)
+        self.__bl = Point2D(self.blp.x, self.blp.y)
+        self.shape = Rectangle((self.blp.x, self.blp.y), self.width, self.height, fill=False)
 
     def __str__(self):
         return "Photo({}, {}, {}, {})".format(self.width, self.height, self.blp, self.name)

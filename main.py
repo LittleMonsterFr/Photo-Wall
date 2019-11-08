@@ -4,6 +4,9 @@ import matplotlib.axes
 import numpy as np
 import random
 from scipy.integrate import quad
+from matplotlib.patches import Rectangle
+from point2D import Point2D
+import math
 
 SIZE_COEFFICIENT = 0.5
 
@@ -14,7 +17,7 @@ def get_photos_array(photos_dic) -> [Photo]:
     for dic in photos_dic:
         for i in range(dic["num"]):
             count += 1
-            p = Photo(dic["width"], dic["height"], 0, 0, count)
+            p = Photo(dic["width"], dic["height"], count)
             _photos.append(p)
     return _photos
 
@@ -60,6 +63,27 @@ def add_photo_to_plot(ax: matplotlib.axes.Axes, p: Photo):
     ax.add_patch(p.shape)
 
 
+def random_place_photos_in_heart(photo_list, blp, trp):
+    photo_map = [
+              [
+                  [None]
+              ] * math.ceil(abs(blp.y - trp.y))
+          ] * math.ceil(abs(blp.x - trp.x))
+    for i in range(len(photo_map)):
+        for j in range(len(photo_map[i])):
+            print("[{}][{}]".format(i, j))
+
+    count = len(photo_list) - 1
+    while count >= 0:
+        x_rand = random.uniform(blp.x, trp.x)
+        y_rand = random.uniform(blp.y, trp.y)
+        photo = photo_list[count]
+        photo.blp = Point2D(x_rand, y_rand)
+        if is_photo_in_heart(photo):
+            add_photo_to_plot(axs, photo)
+            count -= 1
+
+
 if __name__ == "__main__":
     random.seed(42)
 
@@ -82,11 +106,15 @@ if __name__ == "__main__":
     photos = get_photos_array(PHOTOS)
     random.shuffle(photos)
 
-    photo = Photo(1, 1.5, 7, 2, 0)
-    print(photo)
-    add_photo_to_plot(axs, photo)
-    print(is_photo_in_heart(photo))
-
     ts = np.linspace(0, 2 * np.pi, num=100)
-    plt.fill(heart_x_function(ts), heart_y_function(ts), zorder=0)
+    xs = heart_x_function(ts)
+    ys = heart_y_function(ts)
+    bl = Point2D(min(xs), min(ys))
+    tr = Point2D(max(xs), max(ys))
+
+    random_place_photos_in_heart(photos, bl, tr)
+
+    external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y), fill=False)
+    axs.add_patch(external_heart)
+    plt.fill(xs, ys, zorder=0)
     plt.show()

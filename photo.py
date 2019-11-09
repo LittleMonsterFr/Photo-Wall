@@ -7,7 +7,6 @@ class Photo:
     def __init__(self, width, height, name):
         self.width = width
         self.height = height
-        self.__blp = None
         self.name = name
         self.shape = None
         self.__tl = None
@@ -19,17 +18,16 @@ class Photo:
         return [self.__tl, self.__tr, self.__br, self.__bl]
 
     @property
-    def blp(self):
-        return self.__blp
+    def bl(self):
+        return self.__bl
 
-    @blp.setter
-    def blp(self, value):
-        self.__blp = value
-        self.__tl = Point2D(self.blp.x, self.blp.y + self.height)
-        self.__tr = Point2D(self.blp.x + self.width, self.blp.y + self.height)
-        self.__br = Point2D(self.blp.x + self.width, self.blp.y)
-        self.__bl = Point2D(self.blp.x, self.blp.y)
-        self.shape = Rectangle((self.blp.x, self.blp.y), self.width, self.height, fill=False)
+    @bl.setter
+    def bl(self, value):
+        self.__bl = value
+        self.__tl = Point2D(self.bl.x, self.bl.y + self.height)
+        self.__tr = Point2D(self.bl.x + self.width, self.bl.y + self.height)
+        self.__br = Point2D(self.bl.x + self.width, self.bl.y)
+        self.shape = Rectangle((self.bl.x, self.bl.y), self.width, self.height, fill=False)
 
     def overlap_with(self, other):
         other_corners = other.get_corners()
@@ -41,4 +39,4 @@ class Photo:
         return True
 
     def __str__(self):
-        return "Photo({}, {}, {}, {})".format(self.width, self.height, self.blp, self.name)
+        return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)

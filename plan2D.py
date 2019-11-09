@@ -1,6 +1,5 @@
 from point2D import Point2D
 from itertools import product
-import math
 
 
 class Plan2D:
@@ -17,5 +16,5 @@ class Plan2D:
         coordinates = list(product(range(x_min, x_max + 1),
                                    range(y_min, y_max + 1)))
         for coord in coordinates:
-            dict[coord] =
+            self.__dict[coord] = []
 

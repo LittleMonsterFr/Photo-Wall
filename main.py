@@ -7,6 +7,7 @@ from scipy.integrate import quad
 from matplotlib.patches import Rectangle
 from point2D import Point2D
 import math
+from plan2D import Plan2D
 
 SIZE_COEFFICIENT = 0.5
 
@@ -69,9 +70,11 @@ def random_place_photos_in_heart(photo_list, blp, trp):
                   [None]
               ] * math.ceil(abs(blp.y - trp.y))
           ] * math.ceil(abs(blp.x - trp.x))
-    for i in range(len(photo_map)):
-        for j in range(len(photo_map[i])):
-            print("[{}][{}]".format(i, j))
+    # for i in range(len(photo_map)):
+    #     for j in range(len(photo_map[i])):
+    #         print("[{}][{}]".format(i, j))
+
+    plan = Plan2D(blp, trp)
 
     count = len(photo_list) - 1
     while count >= 0:
@@ -80,6 +83,7 @@ def random_place_photos_in_heart(photo_list, blp, trp):
         photo = photo_list[count]
         photo.blp = Point2D(x_rand, y_rand)
         if is_photo_in_heart(photo):
+            # corners = photo.get_corners()
             add_photo_to_plot(axs, photo)
             count -= 1
 

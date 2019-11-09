@@ -31,5 +31,14 @@ class Photo:
         self.__bl = Point2D(self.blp.x, self.blp.y)
         self.shape = Rectangle((self.blp.x, self.blp.y), self.width, self.height, fill=False)
 
+    def overlap_with(self, other):
+        other_corners = other.get_corners()
+        tr = other_corners[1]
+        bl = other_corners[3]
+        if tr.x < self.__bl.x or bl.y > self.__tr.y or bl.x > self.__tr.x or tr.y < self.__bl.y:
+            return False
+
+        return True
+
     def __str__(self):
         return "Photo({}, {}, {}, {})".format(self.width, self.height, self.blp, self.name)

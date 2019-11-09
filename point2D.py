@@ -14,3 +14,14 @@ class Point2D:
 
     def __str__(self):
         return "Point2D({}, {})".format(self.x, self.y)
+
+    @staticmethod
+    def __get_index(value: float):
+        return math.floor(value)
+
+    def get_x_index(self):
+        return self.__get_index(self.x)
+
+    def get_y_index(self):
+        return self.__get_index(self.y)
+

@@ -38,5 +38,38 @@ class Photo:
 
         return True
 
+    def too_close_with(self, other, space):
+        other_corners = other.get_corners()
+        tr = other_corners[1]
+        bl = other_corners[3]
+        if abs(tr.x - self.__bl.x) < space or abs(bl.y - self.__tr.y) < space or abs(bl.x - self.__tr.x) < space \
+                or abs(tr.y - self.__bl.y) < space:
+            return True
+
+        return False
+
+    def too_far_with(self, other, space):
+        other_corners = other.get_corners()
+        tr = other_corners[1]
+        bl = other_corners[3]
+        if abs(tr.x - self.__bl.x) > space or abs(bl.y - self.__tr.y) > space or abs(bl.x - self.__tr.x) > space \
+                or abs(tr.y - self.__bl.y) > space:
+            return True
+
+        return False
+
+    def at_good_distance_with(self, other, space):
+        other_corners = other.get_corners()
+        tr = other_corners[1]
+        bl = other_corners[3]
+        if abs(tr.x - self.__bl.x) == space or abs(bl.y - self.__tr.y) == space or abs(bl.x - self.__tr.x) == space \
+                or abs(tr.y - self.__bl.y) == space:
+            return True
+
+        return False
+
     def __str__(self):
         return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)
+
+    def __repr__(self):
+        return "P{}".format(self.name)

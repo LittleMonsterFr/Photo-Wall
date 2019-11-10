@@ -25,3 +25,19 @@ class Point2D:
     def get_y_index(self):
         return self.__get_index(self.y)
 
+    def get_x_indexes_between(self, other):
+        if self.x == other.x:
+            return None
+        else:
+            x_min = min(self.get_x_index(), other.get_x_index())
+            x_max = max(self.get_x_index(), other.get_x_index())
+            return range(x_min, x_max + 1)
+
+    def get_y_indexes_between(self, other):
+        if self.y == other.y:
+            return None
+        else:
+            y_min = min(self.get_y_index(), other.get_y_index())
+            y_max = max(self.get_y_index(), other.get_y_index())
+            return range(y_min, y_max + 1)
+

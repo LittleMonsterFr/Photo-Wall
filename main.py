@@ -1,12 +1,18 @@
 from photo import Photo
 import matplotlib.pyplot as plt
-import matplotlib.axes
 import numpy as np
 import random
 from matplotlib.patches import Rectangle
 from point2D import Point2D
 from plan2D import Plan2D
 import curve
+import progressBar
+import matplotlib.ticker as plticker
+import signal
+
+
+def signal_handler(signum, frame):
+    raise Exception()
 
 
 def get_photos_array(photos_dic) -> [Photo]:
@@ -29,26 +35,32 @@ def is_photo_in_curve(p: Photo):
 
 def plot_photo(p: Photo):
     axs.add_patch(p.shape)
+    plt.text(p.bl.x, p.bl.y, p.name, fontsize=10)
 
 
 def random_place_photos_in_heart(photo_list, blp, trp):
     plan = Plan2D(blp, trp)
 
-    count = len(photo_list) - 1
-    while count >= 0:
+    signal.alarm(60)
+    count = 0
+    while count < len(photo_list):
         x_rand = random.uniform(blp.x, trp.x)
         y_rand = random.uniform(blp.y, trp.y)
         photo = photo_list[count]
         photo.bl = Point2D(x_rand, y_rand)
         if is_photo_in_curve(photo):
-
-            plot_photo(photo)
-            count -= 1
+            if plan.add_photo(photo):
+                photo.name = str(count)
+                plot_photo(photo)
+                count += 1
+                progressBar.print_progress_bar(count, len(photos), prefix='Progress:', suffix='Complete', length=50)
 
 
 if __name__ == "__main__":
     # Seed the random number generator to have the same results over each iteration
     random.seed(42)
+
+    signal.signal(signal.SIGALRM, signal_handler)
 
     # Define the number of photos for each format (width / height (cm))
     FORMAT_15_10_PORTRAIT = 24
@@ -66,9 +78,12 @@ if __name__ == "__main__":
     ]
 
     # Get the axes of the plot
-    axs = plt.gca()
-    # axs.grid(True, which='both')
+    fig, axs = plt.subplots()
+    axs.grid(True, which='both')
     axs.axis('equal')
+    loc = plticker.MultipleLocator(base=1.0)  # this locator puts ticks at regular intervals
+    axs.xaxis.set_major_locator(loc)
+    axs.yaxis.set_major_locator(loc)
 
     photos = get_photos_array(PHOTOS)
     random.shuffle(photos)
@@ -79,9 +94,13 @@ if __name__ == "__main__":
     bl = Point2D(min(xs), min(ys))
     tr = Point2D(max(xs), max(ys))
 
-    random_place_photos_in_heart(photos, bl, tr)
+    progressBar.print_progress_bar(0, len(photos), prefix='Progress:', suffix='Complete', length=50)
 
     external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y), fill=False)
     axs.add_patch(external_heart)
     plt.fill(xs, ys, zorder=0)
+    try:
+        random_place_photos_in_heart(photos, bl, tr)
+    except Exception:
+        pass
     plt.show()

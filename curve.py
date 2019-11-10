@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.integrate import quad
 from point2D import Point2D
+import math
 
 SIZE_COEFFICIENT = 0.5
 
@@ -40,3 +41,12 @@ def is_point_in_curve(point: Point2D):
         return False
     return True
 
+
+def is_point_in_curve_2(point: Point2D):
+    size = SIZE_COEFFICIENT
+    t = math.asin((point.x / (16 * size)) ** (1/3))
+
+    y0 = curve_y_function(t, size)
+    y1 = curve_y_function(t + math.pi, size)
+
+    return y0 >= point.y >= y1

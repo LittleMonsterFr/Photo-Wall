@@ -4,10 +4,10 @@ from point2D import Point2D
 
 class Photo:
 
-    def __init__(self, width, height, name):
+    def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.name = name
+        self.name = None
         self.shape = None
         self.__tl = None
         self.__tr = None

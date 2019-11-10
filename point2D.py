@@ -41,3 +41,10 @@ class Point2D:
             y_max = max(self.get_y_index(), other.get_y_index())
             return range(y_min, y_max + 1)
 
+    def __lt__(self, other):
+        """Using "reading order" in a coordinate system where 0,0 is bottom left"""
+        try:
+            return (-self.y, self.x) < (-other.y, other.x)
+        except AttributeError:
+            return NotImplemented
+

@@ -1,7 +1,8 @@
+from tqdm import tqdm
 
 
 # Print iterations progress
-def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', print_end="\r"):
+def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', print_end="\r",):
     """
     Call in a loop to create terminal progress bar
     @params:

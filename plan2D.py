@@ -22,6 +22,8 @@ class Plan2D:
 
     @staticmethod
     def __get_photo_indexes(photo: Photo):
+        """ Returns the indexes the given photo crosses in the plan. """
+
         corners = photo.get_corners()
         couples = list(combinations(corners, 2))
         couples = [t for t in couples if t[0].get_x_index() == t[1].get_x_index()
@@ -43,17 +45,19 @@ class Plan2D:
         new_dict = dict(self.__dict)
         keys = self.__get_photo_indexes(photo)
         for key in keys:
+            if key not in new_dict.keys():
+                return False
             # Check if this is the first insert or not
             if len(new_dict[key]) != 0:
                 for p in new_dict[key]:
                     if photo.overlap_with(p):
                         return False
-                    # if photo.too_close_with(p, self.__space):
-                    #     return False
+                    if photo.too_close_with(p, self.__space):
+                        return False
                     # if photo.too_far_with(p, self.__space):
                     #     return False
-                    if not photo.at_good_distance_with(p, self.__space):
-                        return False
+                    # if not photo.at_good_distance_with(p, self.__space):
+                    #     return False
             new_dict[key].append(photo)
         self.__dict = new_dict
         return True

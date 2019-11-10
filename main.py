@@ -8,11 +8,23 @@ from plan2D import Plan2D
 import curve
 import progressBar
 import matplotlib.ticker as plticker
+from itertools import product
 import signal
 
 
 def signal_handler(signum, frame):
-    raise Exception()
+    raise TimeoutError()
+
+
+def set_photos_name(photo_list: [Photo]):
+    for photo in photo_list:
+        photo.name = photo_list.index(photo)
+
+
+def generate_points_to_try(blp, trp, step):
+    x_range = np.arange(blp.x, trp.x, step)
+    y_range = np.arange(blp.y, trp.y, step)
+    return sorted([Point2D(elt[0], elt[1]) for elt in list(product(x_range, y_range))])
 
 
 def get_photos_array(photos_dic) -> [Photo]:
@@ -21,7 +33,7 @@ def get_photos_array(photos_dic) -> [Photo]:
     for dic in photos_dic:
         for i in range(dic["num"]):
             count += 1
-            p = Photo(dic["width"], dic["height"], count)
+            p = Photo(dic["width"], dic["height"])
             _photos.append(p)
     return _photos
 
@@ -41,19 +53,25 @@ def plot_photo(p: Photo):
 def random_place_photos_in_heart(photo_list, blp, trp):
     plan = Plan2D(blp, trp)
 
-    signal.alarm(60)
-    count = 0
-    while count < len(photo_list):
-        x_rand = random.uniform(blp.x, trp.x)
-        y_rand = random.uniform(blp.y, trp.y)
-        photo = photo_list[count]
-        photo.bl = Point2D(x_rand, y_rand)
-        if is_photo_in_curve(photo):
+    points_to_try = generate_points_to_try(blp, trp, 0.2)
+
+    # signal.alarm(60)
+
+    for point in points_to_try:
+
+        progressBar.print_progress_bar(points_to_try.index(point), len(points_to_try), prefix='Progress:',
+                                       suffix='Complete', length=100)
+
+        if not curve.is_point_in_curve_2(point):
+            continue
+
+        photo_index = 0
+        for photo in photo_list[photo_index + 1:]:
+            photo.bl = point
             if plan.add_photo(photo):
-                photo.name = str(count)
                 plot_photo(photo)
-                count += 1
-                progressBar.print_progress_bar(count, len(photos), prefix='Progress:', suffix='Complete', length=50)
+                photo_index += 1
+                break
 
 
 if __name__ == "__main__":
@@ -87,6 +105,7 @@ if __name__ == "__main__":
 
     photos = get_photos_array(PHOTOS)
     random.shuffle(photos)
+    set_photos_name(photos)
 
     ts = np.linspace(0, 2 * np.pi, num=100)
     xs = curve.curve_x_function(ts, curve.SIZE_COEFFICIENT)
@@ -94,13 +113,13 @@ if __name__ == "__main__":
     bl = Point2D(min(xs), min(ys))
     tr = Point2D(max(xs), max(ys))
 
-    progressBar.print_progress_bar(0, len(photos), prefix='Progress:', suffix='Complete', length=50)
+    progressBar.print_progress_bar(0, len(photos), prefix='Progress:', suffix='Complete', length=100)
 
     external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y), fill=False)
     axs.add_patch(external_heart)
     plt.fill(xs, ys, zorder=0)
     try:
         random_place_photos_in_heart(photos, bl, tr)
-    except Exception:
+    except TimeoutError:
         pass
     plt.show()

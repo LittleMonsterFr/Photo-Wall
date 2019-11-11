@@ -57,20 +57,29 @@ def random_place_photos_in_heart(photo_list, blp, trp):
 
     # signal.alarm(60)
 
+    added_photos = []
     for point in points_to_try:
 
         progressBar.print_progress_bar(points_to_try.index(point), len(points_to_try), prefix='Progress:',
                                        suffix='Complete', length=100)
 
-        if not curve.is_point_in_curve_2(point):
+        if not curve.is_point_in_curve(point):
             continue
 
-        photo_index = 0
-        for photo in photo_list[photo_index + 1:]:
+        for photo in photo_list:
+            # Check if the photo has already been added and skip if True
+            if photo in added_photos:
+                continue
+
+            # Assign the corners of the photo
             photo.bl = point
+            # Skip if all the corners are not in the curve
+            if not photo.is_in_curve():
+                continue
+
             if plan.add_photo(photo):
                 plot_photo(photo)
-                photo_index += 1
+                added_photos.append(photo)
                 break
 
 
@@ -107,7 +116,7 @@ if __name__ == "__main__":
     random.shuffle(photos)
     set_photos_name(photos)
 
-    ts = np.linspace(0, 2 * np.pi, num=100)
+    ts = np.linspace(-np.pi, np.pi, num=100)
     xs = curve.curve_x_function(ts, curve.SIZE_COEFFICIENT)
     ys = curve.curve_y_function(ts, curve.SIZE_COEFFICIENT)
     bl = Point2D(min(xs), min(ys))
@@ -118,8 +127,6 @@ if __name__ == "__main__":
     external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y), fill=False)
     axs.add_patch(external_heart)
     plt.fill(xs, ys, zorder=0)
-    try:
-        random_place_photos_in_heart(photos, bl, tr)
-    except TimeoutError:
-        pass
+    # curve.is_point_in_curve_2(Point2D(-3, -1))
+    random_place_photos_in_heart(photos, bl, tr)
     plt.show()

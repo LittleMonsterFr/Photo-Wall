@@ -35,18 +35,30 @@ def winding_integrate_function(t, x0, y0, size):
 
 
 # https://math.stackexchange.com/questions/1308767/how-to-determine-whether-a-point-is-inside-a-closed-region-or-not
-def is_point_in_curve(point: Point2D):
+def is_point_in_curve_long(point: Point2D):
     res = quad(winding_integrate_function, 0, np.pi * 2, args=(point.x, point.y, SIZE_COEFFICIENT))
     if round(res[0], 10) == 0:
         return False
     return True
 
 
-def is_point_in_curve_2(point: Point2D):
+def curve_x_function_inverse(point, size):
+    q = point.x / (16 * size)
+    if q < 0:
+        return -np.arcsin(np.power(-q, 1/3))
+    else:
+        return np.arcsin(np.power(q, 1/3))
+
+
+def is_point_in_curve(point: Point2D):
     size = SIZE_COEFFICIENT
-    t = math.asin((point.x / (16 * size)) ** (1/3))
+    t = curve_x_function_inverse(point, size)
 
     y0 = curve_y_function(t, size)
-    y1 = curve_y_function(t + math.pi, size)
+
+    if t >= 0:
+        y1 = curve_y_function(t - math.pi, size)
+    else:
+        y1 = curve_y_function(t + math.pi, size)
 
     return y0 >= point.y >= y1

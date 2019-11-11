@@ -1,5 +1,6 @@
 from matplotlib.patches import Rectangle
 from point2D import Point2D
+import curve
 
 
 class Photo:
@@ -31,9 +32,9 @@ class Photo:
 
     def overlap_with(self, other):
         other_corners = other.get_corners()
-        tr = other_corners[1]
-        bl = other_corners[3]
-        if tr.x < self.__bl.x or bl.y > self.__tr.y or bl.x > self.__tr.x or tr.y < self.__bl.y:
+        other_tr = other_corners[1]
+        other_bl = other_corners[3]
+        if other_tr.x < self.__bl.x or other_bl.y > self.__tr.y or other_bl.x > self.__tr.x or other_tr.y < self.__bl.y:
             return False
 
         return True
@@ -67,6 +68,12 @@ class Photo:
             return True
 
         return False
+
+    def is_in_curve(self):
+        for point in self.get_corners():
+            if not curve.is_point_in_curve(point):
+                return False
+        return True
 
     def __str__(self):
         return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)

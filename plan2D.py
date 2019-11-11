@@ -11,10 +11,10 @@ class Plan2D:
         self.__dict = {}
         self.__space = 0.2
 
-        x_min = min(bl_point.get_x_index(), tr_point.get_x_index())
-        x_max = max(bl_point.get_x_index(), tr_point.get_x_index())
-        y_min = min(bl_point.get_y_index(), tr_point.get_y_index())
-        y_max = max(bl_point.get_y_index(), tr_point.get_y_index())
+        x_min = bl_point.get_x_index()
+        x_max = tr_point.get_x_index()
+        y_min = bl_point.get_y_index()
+        y_max = tr_point.get_y_index()
         coordinates = list(product(range(x_min, x_max + 1),
                                    range(y_min, y_max + 1)))
         for coord in coordinates:
@@ -45,15 +45,13 @@ class Plan2D:
         new_dict = dict(self.__dict)
         keys = self.__get_photo_indexes(photo)
         for key in keys:
-            if key not in new_dict.keys():
-                return False
             # Check if this is the first insert or not
             if len(new_dict[key]) != 0:
                 for p in new_dict[key]:
                     if photo.overlap_with(p):
                         return False
-                    if photo.too_close_with(p, self.__space):
-                        return False
+                    # if photo.too_close_with(p, self.__space):
+                    #     return False
                     # if photo.too_far_with(p, self.__space):
                     #     return False
                     # if not photo.at_good_distance_with(p, self.__space):

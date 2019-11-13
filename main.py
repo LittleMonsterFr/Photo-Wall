@@ -76,6 +76,9 @@ def random_place_photos_in_heart(photo_list, blp, trp):
                 updated_photo_list.remove(photo)
                 break
 
+    print("\n{} photos left : {}".format(len(updated_photo_list),
+                                       updated_photo_list))
+
 
 if __name__ == "__main__":
     # Seed the random number generator to have the same results over each

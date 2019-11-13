@@ -55,8 +55,8 @@ class Plan2D:
                     #     return False
                     # if photo.too_far_with(p, self.__space):
                     #     return False
-                    # if not photo.at_good_distance_with(p, self.__space):
-                    #     return False
+                    if not photo.at_good_distance_with(p, self.__space):
+                        return False
             keys_to_add.append(key)
 
         # Reaching that line means the photo can be safely added to the plan

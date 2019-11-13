@@ -75,8 +75,12 @@ class Photo:
                 return False
         return True
 
+    def contains_point(self, point: Point2D):
+        return self.bl.x <= point.x <= self.__tr.x and self.bl.x <= point.y <= self.__tr.y
+
     def __str__(self):
-        return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)
+        # return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)
+        return self.__repr__()
 
     def __repr__(self):
         return "P{}".format(self.name)

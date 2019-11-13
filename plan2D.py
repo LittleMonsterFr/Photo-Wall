@@ -1,6 +1,7 @@
 from point2D import Point2D
 from itertools import product, combinations
 from photo import Photo
+import copy
 
 
 class Plan2D:
@@ -42,13 +43,14 @@ class Plan2D:
         return keys
 
     def add_photo(self, photo: Photo) -> bool:
-        new_dict = dict(self.__dict)
         keys = self.__get_photo_indexes(photo)
+        new_dict = {}
         for key in keys:
             # Check if this is the first insert or not
-            if len(new_dict[key]) != 0:
-                for p in new_dict[key]:
+            if len(self.__dict[key]) != 0:
+                for p in self.__dict[key]:
                     if photo.overlap_with(p):
+                        # print("{} overlap with {}".format(photo, p))
                         return False
                     # if photo.too_close_with(p, self.__space):
                     #     return False
@@ -57,5 +59,6 @@ class Plan2D:
                     # if not photo.at_good_distance_with(p, self.__space):
                     #     return False
             new_dict[key].append(photo)
-        self.__dict = new_dict
+        for key in new_dict.keys():self.__dict = new_dict
+            self.__dict[key].append(new_dict[key])
         return True

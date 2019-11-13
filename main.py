@@ -55,21 +55,13 @@ def random_place_photos_in_heart(photo_list, blp, trp):
 
     points_to_try = generate_points_to_try(blp, trp, 0.2)
 
-    # signal.alarm(60)
-
-    added_photos = []
+    updated_photo_list = list(photo_list)
     for point in points_to_try:
 
         progressBar.print_progress_bar(points_to_try.index(point), len(points_to_try), prefix='Progress:',
                                        suffix='Complete', length=100)
 
-        if not curve.is_point_in_curve(point):
-            continue
-
-        for photo in photo_list:
-            # Check if the photo has already been added and skip if True
-            if photo in added_photos:
-                continue
+        for photo in updated_photo_list:
 
             # Assign the corners of the photo
             photo.bl = point
@@ -79,7 +71,7 @@ def random_place_photos_in_heart(photo_list, blp, trp):
 
             if plan.add_photo(photo):
                 plot_photo(photo)
-                added_photos.append(photo)
+                updated_photo_list.remove(photo)
                 break
 
 
@@ -106,7 +98,7 @@ if __name__ == "__main__":
 
     # Get the axes of the plot
     fig, axs = plt.subplots()
-    axs.grid(True, which='both')
+    # axs.grid(True, which='both')
     axs.axis('equal')
     loc = plticker.MultipleLocator(base=1.0)  # this locator puts ticks at regular intervals
     axs.xaxis.set_major_locator(loc)

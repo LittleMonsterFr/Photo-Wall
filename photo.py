@@ -78,6 +78,13 @@ class Photo:
     def contains_point(self, point: Point2D):
         return self.bl.x <= point.x <= self.__tr.x and self.bl.x <= point.y <= self.__tr.y
 
+    def clear_coords(self):
+        self.shape = None
+        self.__tl = None
+        self.__tr = None
+        self.__br = None
+        self.__bl = None
+
     def __str__(self):
         # return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)
         return self.__repr__()

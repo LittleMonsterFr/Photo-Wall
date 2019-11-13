@@ -69,12 +69,16 @@ def random_place_photos_in_heart(photo_list, blp, trp):
             photo.bl = point
             # Skip if all the corners are not in the curve
             if not photo.is_in_curve():
+                # Clear the coordinates previously set to avoid corruption
+                photo.clear_coords()
                 continue
 
             if plan.add_photo(photo):
                 plot_photo(photo)
                 updated_photo_list.remove(photo)
                 break
+            else:
+                photo.clear_coords()
 
     print("\n{} photos left : {}".format(len(updated_photo_list),
                                        updated_photo_list))
@@ -105,7 +109,7 @@ if __name__ == "__main__":
 
     # Get the axes of the plot
     fig, axs = plt.subplots()
-    # axs.grid(True, which='both')
+    axs.grid(True, which='both')
     axs.axis('equal')
     # this locator puts ticks at regular intervals
     loc = plticker.MultipleLocator(base=1.0)

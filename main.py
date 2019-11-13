@@ -24,7 +24,8 @@ def set_photos_name(photo_list: [Photo]):
 def generate_points_to_try(blp, trp, step):
     x_range = np.arange(blp.x, trp.x, step)
     y_range = np.arange(blp.y, trp.y, step)
-    return sorted([Point2D(elt[0], elt[1]) for elt in list(product(x_range, y_range))])
+    return sorted([Point2D(elt[0], elt[1]) for elt in list(product(x_range,
+                                                                   y_range))])
 
 
 def get_photos_array(photos_dic) -> [Photo]:
@@ -58,7 +59,8 @@ def random_place_photos_in_heart(photo_list, blp, trp):
     updated_photo_list = list(photo_list)
     for point in points_to_try:
 
-        progressBar.print_progress_bar(points_to_try.index(point), len(points_to_try), prefix='Progress:',
+        progressBar.print_progress_bar(points_to_try.index(point),
+                                       len(points_to_try), prefix='Progress:',
                                        suffix='Complete', length=100)
 
         for photo in updated_photo_list:
@@ -76,7 +78,8 @@ def random_place_photos_in_heart(photo_list, blp, trp):
 
 
 if __name__ == "__main__":
-    # Seed the random number generator to have the same results over each iteration
+    # Seed the random number generator to have the same results over each
+    # iteration
     random.seed(42)
 
     signal.signal(signal.SIGALRM, signal_handler)
@@ -89,7 +92,8 @@ if __name__ == "__main__":
 
     # Add the photos in a list, each format being in a dictionary
     PHOTOS = [
-        # The width and height of the photos are reduced to the values of the ratio
+        # The width and height of the photos are reduced to the values of the
+        # ratio
         {"num": FORMAT_15_10_PORTRAIT, "width": 1, "height": 1.5},
         {"num": FORMAT_15_10_LANDSCAPE, "width": 1.5, "height": 1},
         {"num": FORMAT_13_10_PORTRAIT, "width": 1, "height": 1.3},
@@ -100,7 +104,8 @@ if __name__ == "__main__":
     fig, axs = plt.subplots()
     # axs.grid(True, which='both')
     axs.axis('equal')
-    loc = plticker.MultipleLocator(base=1.0)  # this locator puts ticks at regular intervals
+    # this locator puts ticks at regular intervals
+    loc = plticker.MultipleLocator(base=1.0)
     axs.xaxis.set_major_locator(loc)
     axs.yaxis.set_major_locator(loc)
 
@@ -114,9 +119,11 @@ if __name__ == "__main__":
     bl = Point2D(min(xs), min(ys))
     tr = Point2D(max(xs), max(ys))
 
-    progressBar.print_progress_bar(0, len(photos), prefix='Progress:', suffix='Complete', length=100)
+    progressBar.print_progress_bar(0, len(photos), prefix='Progress:',
+                                   suffix='Complete', length=100)
 
-    external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y), fill=False)
+    external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y),
+                               fill=False)
     axs.add_patch(external_heart)
     plt.fill(xs, ys, zorder=0)
     # curve.is_point_in_curve_2(Point2D(-3, -1))

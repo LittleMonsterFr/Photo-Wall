@@ -1,6 +1,3 @@
-from tqdm import tqdm
-
-
 # Print iterations progress
 def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', print_end="\r",):
     """

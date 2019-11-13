@@ -44,13 +44,12 @@ class Plan2D:
 
     def add_photo(self, photo: Photo) -> bool:
         keys = self.__get_photo_indexes(photo)
-        new_dict = {}
+        keys_to_add = []
         for key in keys:
             # Check if this is the first insert or not
             if len(self.__dict[key]) != 0:
                 for p in self.__dict[key]:
                     if photo.overlap_with(p):
-                        # print("{} overlap with {}".format(photo, p))
                         return False
                     # if photo.too_close_with(p, self.__space):
                     #     return False
@@ -58,7 +57,9 @@ class Plan2D:
                     #     return False
                     # if not photo.at_good_distance_with(p, self.__space):
                     #     return False
-            new_dict[key].append(photo)
-        for key in new_dict.keys():self.__dict = new_dict
-            self.__dict[key].append(new_dict[key])
+            keys_to_add.append(key)
+
+        # Reaching that line means the photo can be safely added to the plan
+        for key in keys_to_add:
+            self.__dict[key].append(photo)
         return True

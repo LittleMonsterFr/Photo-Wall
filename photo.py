@@ -1,6 +1,8 @@
 from matplotlib.patches import Rectangle
 from point2D import Point2D
 import curve
+from itertools import combinations
+import math
 
 
 class Photo:
@@ -9,6 +11,7 @@ class Photo:
         self.width = width
         self.height = height
         self.name = None
+        self.position = None
         self.shape = None
         self.__tl = None
         self.__tr = None
@@ -39,44 +42,29 @@ class Photo:
 
         return True
 
-    def too_close_with(self, other, space):
+    def close_enough(self, other, space):
         other_corners = other.get_corners()
         tr = other_corners[1]
         bl = other_corners[3]
-        if abs(tr.x - self.__bl.x) < space or abs(bl.y - self.__tr.y) < space or abs(bl.x - self.__tr.x) < space \
-                or abs(tr.y - self.__bl.y) < space:
-            return True
 
-        return False
+        if self.__bl.x >= tr.x:
+            distance = round(math.fabs(tr.x - self.__bl.x), 6)
+        elif self.__tr.y <= bl.y:
+            distance = round(math.fabs(bl.y - self.__tr.y), 6)
+        elif self.__tr.x <= bl.x:
+            distance = round(math.fabs(bl.x - self.__tr.x), 6)
+        elif self.__bl.y >= tr.y:
+            distance = round(math.fabs(tr.y - self.__bl.y), 6)
+        else:
+            raise AssertionError
 
-    def too_far_with(self, other, space):
-        other_corners = other.get_corners()
-        tr = other_corners[1]
-        bl = other_corners[3]
-        if abs(tr.x - self.__bl.x) > space or abs(bl.y - self.__tr.y) > space or abs(bl.x - self.__tr.x) > space \
-                or abs(tr.y - self.__bl.y) > space:
-            return True
-
-        return False
-
-    def at_good_distance_with(self, other, space):
-        other_corners = other.get_corners()
-        tr = other_corners[1]
-        bl = other_corners[3]
-        if abs(tr.x - self.__bl.x) == space or abs(bl.y - self.__tr.y) == space or abs(bl.x - self.__tr.x) == space \
-                or abs(tr.y - self.__bl.y) == space:
-            return True
-
-        return False
+        return distance >= space
 
     def is_in_curve(self):
         for point in self.get_corners():
             if not curve.is_point_in_curve(point):
                 return False
         return True
-
-    def contains_point(self, point: Point2D):
-        return self.bl.x <= point.x <= self.__tr.x and self.bl.x <= point.y <= self.__tr.y
 
     def clear_coords(self):
         self.shape = None
@@ -85,9 +73,29 @@ class Photo:
         self.__br = None
         self.__bl = None
 
+    def get_indexes(self):
+        """ Returns the indexes the given photo crosses in the plan. """
+
+        corners = self.get_corners()
+        couples = list(combinations(corners, 2))
+        couples = [t for t in couples if t[0].get_x_index() == t[1].get_x_index()
+                   or t[0].get_y_index() == t[1].get_y_index()]
+        keys = set()
+        for c in couples:
+            x_indexes = c[0].get_x_indexes_between(c[1])
+            y_indexes = c[0].get_y_indexes_between(c[1])
+
+            if x_indexes is not None:
+                for x_index in x_indexes:
+                    keys.add((x_index, c[0].get_y_index()))
+            else:
+                for y_index in y_indexes:
+                    keys.add((c[0].get_x_index(), y_index))
+        return keys
+
     def __str__(self):
-        # return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)
-        return self.__repr__()
+        return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)
+        # return self.__repr__()
 
     def __repr__(self):
         return "P{}".format(self.name)

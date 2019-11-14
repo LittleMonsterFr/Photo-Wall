@@ -48,15 +48,35 @@ def is_photo_in_curve(p: Photo):
 
 def plot_photo(p: Photo):
     axs.add_patch(p.shape)
-    plt.text(p.bl.x, p.bl.y, p.name, fontsize=10)
+    plt.text(p.bl.x, p.bl.y, p.name, fontsize=8)
+    plt.text(p.bl.x + p.width / 2, p.bl.y + p.height / 2, p.position, fontsize=8)
+
+
+def debug(photo_list, blp, trp):
+    point = Point2D(0, 0)
+    plan = Plan2D(blp, trp)
+
+    photo1 = photo_list[0]
+    photo1.bl = point
+    if photo1.is_in_curve():
+        if plan.add_photo(photo1):
+            plot_photo(photo1)
+
+    point = Point2D(1.2, 0)
+    photo2 = photo_list[1]
+    photo2.bl = point
+    if photo2.is_in_curve():
+        if plan.add_photo(photo2):
+            plot_photo(photo2)
 
 
 def random_place_photos_in_heart(photo_list, blp, trp):
     plan = Plan2D(blp, trp)
 
-    points_to_try = generate_points_to_try(blp, trp, 0.2)
+    points_to_try = generate_points_to_try(blp, trp, 0.1)
 
     updated_photo_list = list(photo_list)
+    pos = 0
     for point in points_to_try:
 
         progressBar.print_progress_bar(points_to_try.index(point),
@@ -74,6 +94,8 @@ def random_place_photos_in_heart(photo_list, blp, trp):
                 continue
 
             if plan.add_photo(photo):
+                photo.position = pos
+                pos += 1
                 plot_photo(photo)
                 updated_photo_list.remove(photo)
                 break
@@ -135,4 +157,8 @@ if __name__ == "__main__":
     plt.fill(xs, ys, zorder=0)
     # curve.is_point_in_curve_2(Point2D(-3, -1))
     random_place_photos_in_heart(photos, bl, tr)
+    # debug(photos, bl, tr)
+
+    for photo in photos:
+        print(str(photo))
     plt.show()

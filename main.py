@@ -71,9 +71,10 @@ def debug(photo_list, blp, trp):
 
 
 def random_place_photos_in_heart(photo_list, blp, trp):
-    plan = Plan2D(blp, trp)
+    photo_space = 0.2
+    plan = Plan2D(blp, trp, photo_space)
 
-    points_to_try = generate_points_to_try(blp, trp, 0.1)
+    points_to_try = generate_points_to_try(blp, trp, photo_space / 3)
 
     updated_photo_list = list(photo_list)
     pos = 0

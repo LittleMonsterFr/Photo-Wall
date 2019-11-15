@@ -5,11 +5,11 @@ from photo import Photo
 
 class Plan2D:
 
-    def __init__(self, bl_point: Point2D, tr_point: Point2D):
+    def __init__(self, bl_point: Point2D, tr_point: Point2D, photo_space):
         self.__bl_point = bl_point
         self.__tr_point = tr_point
         self.__dict = {}
-        self.__space = 0.2
+        self.__space = photo_space
 
         x_min = bl_point.get_x_index()
         x_max = tr_point.get_x_index()

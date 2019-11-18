@@ -10,6 +10,7 @@ import progressBar
 import matplotlib.ticker as plticker
 from itertools import product
 import signal
+from CoordinateGenerator import CoordinateGenerator
 
 
 def signal_handler(signum, frame):
@@ -73,21 +74,23 @@ def debug(photo_list, blp, trp):
 def random_place_photos_in_heart(photo_list, blp, trp):
     photo_space = 0.2
     plan = Plan2D(blp, trp, photo_space)
-
-    points_to_try = generate_points_to_try(blp, trp, photo_space / 3)
-
+    coordinate_generator = CoordinateGenerator(blp.x, trp.x, bl.y, tr.y, photo_space)
     updated_photo_list = list(photo_list)
     pos = 0
-    for point in points_to_try:
+    coord = (bl.x, tr.y)
 
-        progressBar.print_progress_bar(points_to_try.index(point),
-                                       len(points_to_try), prefix='Progress:',
+    while coord is not None:
+
+        progressBar.print_progress_bar(pos, len(photo_list), prefix='Progress:',
                                        suffix='Complete', length=100)
+
+        x_curr = coord[0]
+        y_curr = coord[1]
 
         for photo in updated_photo_list:
 
             # Assign the corners of the photo
-            photo.bl = point
+            photo.bl = Point2D(x_curr, y_curr)
             # Skip if all the corners are not in the curve
             if not photo.is_in_curve():
                 # Clear the coordinates previously set to avoid corruption
@@ -95,6 +98,7 @@ def random_place_photos_in_heart(photo_list, blp, trp):
                 continue
 
             if plan.add_photo(photo):
+                x_curr = photo.bl.x + photo.width
                 photo.position = pos
                 pos += 1
                 plot_photo(photo)
@@ -102,6 +106,12 @@ def random_place_photos_in_heart(photo_list, blp, trp):
                 break
             else:
                 photo.clear_coords()
+
+        if len(updated_photo_list) == 0:
+            break
+
+
+        coord = coordinate_generator.get_next_point(x_curr, y_curr)
 
     print("\n{} photos left : {}".format(len(updated_photo_list),
                                        updated_photo_list))

@@ -77,21 +77,19 @@ class Photo:
         """ Returns the indexes the given photo crosses in the plan. """
 
         corners = self.get_corners()
-        couples = list(combinations(corners, 2))
-        couples = [t for t in couples if t[0].get_x_index() == t[1].get_x_index()
-                   or t[0].get_y_index() == t[1].get_y_index()]
         keys = set()
-        for c in couples:
-            x_indexes = c[0].get_x_indexes_between(c[1])
-            y_indexes = c[0].get_y_indexes_between(c[1])
+        bl = corners[3]
+        tr = corners[1]
+        x_index_min = bl.get_x_index()
+        x_index_max = tr.get_x_index()
+        y_index_min = bl.get_y_index()
+        y_index_max = tr.get_y_index()
 
-            if x_indexes is not None:
-                for x_index in x_indexes:
-                    keys.add((x_index, c[0].get_y_index()))
-            else:
-                for y_index in y_indexes:
-                    keys.add((c[0].get_x_index(), y_index))
-        return keys
+        for x in range(x_index_min - 1, x_index_max + 2):
+            for y in range(y_index_min - 1, y_index_max + 2):
+                keys.add((x, y))
+
+        return sorted(keys)
 
     def __str__(self):
         return "Photo({}, {}, {}, {})".format(self.width, self.height, self.bl, self.name)

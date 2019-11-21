@@ -22,29 +22,13 @@ def set_photos_name(photo_list: [Photo]):
         photo.name = photo_list.index(photo)
 
 
-def generate_points_to_try(blp, trp, step):
-    x_range = np.arange(blp.x, trp.x, step)
-    y_range = np.arange(blp.y, trp.y, step)
-    return sorted([Point2D(elt[0], elt[1]) for elt in list(product(x_range,
-                                                                   y_range))])
-
-
 def get_photos_array(photos_dic) -> [Photo]:
     _photos = []
-    count = 0
     for dic in photos_dic:
         for i in range(dic["num"]):
-            count += 1
             p = Photo(dic["width"], dic["height"])
             _photos.append(p)
     return _photos
-
-
-def is_photo_in_curve(p: Photo):
-    for point in p.get_corners():
-        if not curve.is_point_in_curve(point):
-            return False
-    return True
 
 
 def plot_photo(p: Photo):
@@ -53,68 +37,103 @@ def plot_photo(p: Photo):
     plt.text(p.bl.x + p.width / 2, p.bl.y + p.height / 2, p.position, fontsize=8)
 
 
-def debug(photo_list, blp, trp):
-    point = Point2D(0, 0)
-    plan = Plan2D(blp, trp)
-
-    photo1 = photo_list[0]
-    photo1.bl = point
-    if photo1.is_in_curve():
-        if plan.add_photo(photo1):
-            plot_photo(photo1)
-
-    point = Point2D(1.2, 0)
-    photo2 = photo_list[1]
-    photo2.bl = point
-    if photo2.is_in_curve():
-        if plan.add_photo(photo2):
-            plot_photo(photo2)
-
-
-def random_place_photos_in_heart(photo_list, blp, trp):
+def place_photos_in_curve(photo_list, blp, trp):
     photo_space = 0.2
-    plan = Plan2D(blp, trp, photo_space)
     coordinate_generator = CoordinateGenerator(blp.x, trp.x, bl.y, tr.y, photo_space)
     updated_photo_list = list(photo_list)
     pos = 0
     coord = (bl.x, tr.y)
+
+    plan = {}
 
     while coord is not None:
 
         progressBar.print_progress_bar(pos, len(photo_list), prefix='Progress:',
                                        suffix='Complete', length=100)
 
+        # Set the current coordinates
         x_curr = coord[0]
         y_curr = coord[1]
 
         for photo in updated_photo_list:
 
             # Assign the corners of the photo
-            photo.bl = Point2D(x_curr, y_curr)
+            photo.update_coordinates(Point2D(x_curr, y_curr))
             # Skip if all the corners are not in the curve
             if not photo.is_in_curve():
                 # Clear the coordinates previously set to avoid corruption
                 photo.clear_coords()
                 continue
 
-            if plan.add_photo(photo):
-                x_curr = photo.bl.x + photo.width
-                photo.position = pos
-                pos += 1
-                plot_photo(photo)
-                updated_photo_list.remove(photo)
-                break
-            else:
+            # Get the coordinates the photo crosses
+            keys = photo.get_indexes()
+
+            # Temporary store the keys in this list
+            keys_to_add = []
+            error = False
+
+            for key in keys:
+                # Add an empty list for a given key if it isn't in the plan yet
+                if key not in plan.keys():
+                    plan[key] = []
+
+                # Check if this is the first insert or not
+                if len(plan[key]) != 0:
+                    for already_added_photo in plan[key]:
+                        if photo.overlap_with(already_added_photo):
+                            error = True
+                            break
+                        if photo.too_close(already_added_photo, photo_space):
+                            error = True
+                            break
+
+                    if error:
+                        break
+
+                keys_to_add.append(key)
+
+            if error:
                 photo.clear_coords()
+                continue
+
+            left = set()
+            right = set()
+            top = set()
+            bottom = set()
+            for key in keys_to_add:
+                for already_added_photo in plan[key]:
+                    if already_added_photo.on_the_left_of(photo):
+                        left.add(already_added_photo)
+
+                    if already_added_photo.on_the_right_of(photo):
+                        right.add(already_added_photo)
+
+                    if already_added_photo.on_the_top_of(photo):
+                        top.add(already_added_photo)
+
+                    if already_added_photo.on_the_bottom_of(photo):
+                        bottom.add(already_added_photo)
+
+            sorted(top, key=lambda photo_key: photo_key.bl.y < photo.tr.y)
+            print(top)
+
+            for key in keys_to_add:
+                plan[key].append(photo)
+
+            x_curr = photo.bl.x + photo.width
+            photo.position = pos
+            pos += 1
+            plot_photo(photo)
+            updated_photo_list.remove(photo)
+            break
 
         if len(updated_photo_list) == 0:
             break
 
-
         coord = coordinate_generator.get_next_point(x_curr, y_curr)
 
     print("\n{} photos left : {}".format(len(updated_photo_list),
-                                       updated_photo_list))
+                                         updated_photo_list))
 
 
 if __name__ == "__main__":
@@ -166,10 +185,10 @@ if __name__ == "__main__":
                                fill=False)
     axs.add_patch(external_heart)
     plt.fill(xs, ys, zorder=0)
-    # curve.is_point_in_curve_2(Point2D(-3, -1))
-    random_place_photos_in_heart(photos, bl, tr)
+    place_photos_in_curve(photos, bl, tr)
     # debug(photos, bl, tr)
 
-    for photo in photos:
-        print(str(photo))
+    for p in photos:
+        print(str(p))
+
     plt.show()

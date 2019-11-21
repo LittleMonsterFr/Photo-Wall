@@ -44,10 +44,13 @@ def is_point_in_curve_long(point: Point2D):
 
 def curve_x_function_inverse(point, size):
     q = point.x / (16 * size)
+
     if q < 0:
         return -np.arcsin(np.power(-q, 1/3))
-    else:
+    elif q > 0:
         return np.arcsin(np.power(q, 1/3))
+    else:
+        return 0
 
 
 def is_point_in_curve(point: Point2D):

@@ -11,15 +11,6 @@ class Plan2D:
         self.__dict = {}
         self.__space = photo_space
 
-        x_min = bl_point.get_x_index()
-        x_max = tr_point.get_x_index()
-        y_min = bl_point.get_y_index()
-        y_max = tr_point.get_y_index()
-        coordinates = list(product(range(x_min - 1, x_max + 2),
-                                   range(y_min - 1, y_max + 2)))
-        for coord in coordinates:
-            self.__dict[coord] = []
-
     def add_photo(self, photo: Photo) -> bool:
         keys = photo.get_indexes()
         keys_to_add = []
@@ -29,7 +20,7 @@ class Plan2D:
                 for p in self.__dict[key]:
                     if photo.overlap_with(p):
                         return False
-                    if not photo.close_enough(p, self.__space):
+                    if not photo.too_close(p, self.__space):
                         return False
             keys_to_add.append(key)
 

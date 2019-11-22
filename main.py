@@ -4,13 +4,12 @@ import numpy as np
 import random
 from matplotlib.patches import Rectangle
 from point2D import Point2D
-from plan2D import Plan2D
 import curve
 import progressBar
 import matplotlib.ticker as plticker
-from itertools import product
 import signal
 from CoordinateGenerator import CoordinateGenerator
+import math
 
 
 def signal_handler(signum, frame):
@@ -26,20 +25,21 @@ def get_photos_array(photos_dic) -> [Photo]:
     _photos = []
     for dic in photos_dic:
         for i in range(dic["num"]):
-            p = Photo(dic["width"], dic["height"])
-            _photos.append(p)
+            _photos.append(Photo(dic["width"], dic["height"]))
     return _photos
 
 
 def plot_photo(p: Photo):
     axs.add_patch(p.shape)
     plt.text(p.bl.x, p.bl.y, p.name, fontsize=8)
-    plt.text(p.bl.x + p.width / 2, p.bl.y + p.height / 2, p.position, fontsize=8)
+    plt.text(p.bl.x + p.width / 2, p.bl.y + p.height / 2, p.position,
+             fontsize=8)
 
 
 def place_photos_in_curve(photo_list, blp, trp):
     photo_space = 0.2
-    coordinate_generator = CoordinateGenerator(blp.x, trp.x, bl.y, tr.y, photo_space)
+    coordinate_generator = CoordinateGenerator(blp.x, trp.x, bl.y, tr.y,
+                                               0.2)
     updated_photo_list = list(photo_list)
     pos = 0
     coord = (bl.x, tr.y)
@@ -65,60 +65,86 @@ def place_photos_in_curve(photo_list, blp, trp):
                 photo.clear_coords()
                 continue
 
-            # Get the coordinates the photo crosses
-            keys = photo.get_indexes()
+            """ At this point, the photo fits in the curve. """
 
-            # Temporary store the keys in this list
-            keys_to_add = []
+            # Get the coordinates the photo crosses including the external edge
+            photo_coordinate_indexes_external = photo.get_indexes(external=True)
             error = False
 
-            for key in keys:
+            for photo_coordinate_index in photo_coordinate_indexes_external:
                 # Add an empty list for a given key if it isn't in the plan yet
-                if key not in plan.keys():
-                    plan[key] = []
+                if photo_coordinate_index not in plan.keys():
+                    plan[photo_coordinate_index] = []
 
-                # Check if this is the first insert or not
-                if len(plan[key]) != 0:
-                    for already_added_photo in plan[key]:
-                        if photo.overlap_with(already_added_photo):
-                            error = True
-                            break
-                        if photo.too_close(already_added_photo, photo_space):
-                            error = True
-                            break
-
-                    if error:
+                for neighbour in plan[photo_coordinate_index]:
+                    if photo.overlap_with(neighbour):
+                        error = True
                         break
+                    if photo.too_close(neighbour, photo_space):
+                        error = True
+                        break
+                    # Create a list of neighbours
+                    photo.neighbours.add(neighbour)
 
-                keys_to_add.append(key)
+                if error:
+                    break
 
             if error:
                 photo.clear_coords()
+                photo.neighbours.clear()
                 continue
+
+            """
+            At this point, the photo is not too close nor overlapping any
+            of the photos around.
+            """
 
             left = set()
             right = set()
             top = set()
             bottom = set()
-            for key in keys_to_add:
-                for already_added_photo in plan[key]:
-                    if already_added_photo.on_the_left_of(photo):
-                        left.add(already_added_photo)
+            for neighbour in photo.neighbours:
+                if neighbour.on_the_left_of(photo) and \
+                        photo.horizontally_cross(neighbour):
+                    left.add(neighbour)
 
-                    if already_added_photo.on_the_right_of(photo):
-                        right.add(already_added_photo)
+                if neighbour.on_the_right_of(photo) and \
+                        photo.horizontally_cross(neighbour):
+                    right.add(neighbour)
 
-                    if already_added_photo.on_the_top_of(photo):
-                        top.add(already_added_photo)
+                if neighbour.on_the_top_of(photo) and \
+                        photo.vertically_cross(neighbour):
+                    top.add(neighbour)
 
-                    if already_added_photo.on_the_bottom_of(photo):
-                        bottom.add(already_added_photo)
+                if neighbour.on_the_bottom_of(photo) and \
+                        photo.vertically_cross(neighbour):
+                    bottom.add(neighbour)
 
-            sorted(top, key=lambda photo_key: photo_key.bl.y < photo.tr.y)
-            print(top)
+            left = sorted(left, key=lambda photo_key: math.fabs(photo_key.tr.x - photo.bl.x))
+            right = sorted(right, key=lambda photo_key: math.fabs(photo_key.bl.x - photo.tr.x))
+            top = sorted(top, key=lambda photo_key: math.fabs(photo_key.bl.y - photo.tr.y))
+            bottom = sorted(bottom, key=lambda photo_key: math.fabs(photo_key.tr.y - photo.bl.y))
 
-            for key in keys_to_add:
-                plan[key].append(photo)
+            if len(left) > 0 and len(top) > 0:
+                x_temp = left[0].br.x + photo_space
+                y_temp = top[0].bl.y - photo_space - photo.height
+                photo_fits = True
+                photo.update_coordinates(Point2D(x_temp, y_temp))
+
+                while photo_fits:
+                    for neighbour in photo.neighbours:
+                        if photo.overlap_with(neighbour) or photo.too_close(neighbour, photo_space):
+                            photo_fits = False
+                    break
+
+                if photo_fits:
+                    x_curr = x_temp
+                    y_curr = y_temp
+                else:
+                    photo.update_coordinates(Point2D(x_curr, y_curr))
+
+            for photo_coordinate_index in photo.get_indexes(external=False):
+                plan[photo_coordinate_index].append(photo)
 
             x_curr = photo.bl.x + photo.width
             photo.position = pos
@@ -184,7 +210,7 @@ if __name__ == "__main__":
     external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y),
                                fill=False)
     axs.add_patch(external_heart)
-    plt.fill(xs, ys, zorder=0)
+    plt.fill(xs, ys, "g", zorder=0)
     place_photos_in_curve(photos, bl, tr)
     # debug(photos, bl, tr)
 

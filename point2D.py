@@ -8,8 +8,8 @@ class Point2D:
         self.y = y
 
     def distance(self, other):
-        left = math.pow(self.x + other.get_x(), 2)
-        right = math.pow(self.y + other.get_y(), 2)
+        left = math.pow(self.x + other.x, 2)
+        right = math.pow(self.y + other.y, 2)
         return math.sqrt(left + right)
 
     def __str__(self):

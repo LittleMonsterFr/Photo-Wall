@@ -4,8 +4,9 @@ import math
 class Point2D:
 
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        # Rounding to 2 decimals give a millimeter precision
+        self.x = round(x, 2)
+        self.y = round(y, 2)
 
     def distance(self, other):
         left = math.pow(self.x + other.x, 2)

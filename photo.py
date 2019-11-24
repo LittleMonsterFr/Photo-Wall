@@ -10,7 +10,7 @@ class Photo:
         self.width = width
         self.height = height
         self.curve_coefficient = curve_coefficient
-        self.name = None
+        self.name = "{}-{}".format(width, height)
         self.position = None
         self.shape = None
         self.tl = None
@@ -152,3 +152,9 @@ class Photo:
 
     def __repr__(self):
         return "P{}".format(self.name)
+
+    def __eq__(self, other):
+        return self.width == other.width and self.height == other.height
+
+    def __hash__(self):
+        return self.name

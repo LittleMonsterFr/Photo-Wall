@@ -11,6 +11,7 @@ import signal
 from CoordinateGenerator import CoordinateGenerator, Side
 import math
 import sys
+import itertools
 
 
 def signal_handler(signum, frame):
@@ -23,12 +24,51 @@ def set_photos_name(photo_list: [Photo]):
         photo.name = photo_list.index(photo)
 
 
-def get_photos_array(photos_dic, curve_coefficient) -> [Photo]:
-    _photos = []
-    for dic in photos_dic:
-        for i in range(dic["num"]):
-            _photos.append(Photo(dic["width"], dic["height"], curve_coefficient))
-    return _photos
+def recurse_photos(photo_list, rec_level):
+    res = []
+    if rec_level >= 1:
+        for l in photo_list[len(photo_list) - rec_level]:
+            res += recurse_photos(photo_list, rec_level - 1)
+    else:
+        return
+
+
+def get_photos_array(photo_list: [[Photo]], curve_coefficient: float) -> [Photo]:
+    g_list = []
+
+    valid_length = 0
+    for l in photo_list:
+        sub_list = []
+        valid_length += len(l)
+        for index in range(1, len(l) + 1):
+            lst = l[0:index]
+            sub_list.append(lst)
+        g_list.append(sub_list)
+
+    res_iter = itertools.product(*g_list)
+    res = []
+    for tpl in res_iter:
+        res_lst = []
+        for lst in tpl:
+            for photo in lst:
+                res_lst.append(photo)
+        if len(res_lst) == valid_length:
+            res.append(res_lst)
+            print(res_lst)
+
+    result_list = []
+
+def generate_photo_permutations(photo_list: [Photo]) -> [[Photo]]:
+    res = list(itertools.permutations(photo_list))
+    photo_set = set(res)
+    for photo_lst in res:
+        print(photo_lst)
+        # photo_set.add(photo_lst)
+
+    return photo_set
+
+    # lst_1 = [photo_list[0], photo_list[0], photo_list[0]]
+    # lst_2 = [photo_list[0], photo_list[0], photo_list[0]]
 
 
 def plot_photo(p: Photo):
@@ -188,31 +228,37 @@ if __name__ == "__main__":
     FORMAT_13_10_PORTRAIT = 9
     FORMAT_13_10_LANDSCAPE = 6
 
+    CURVE_COEFFICIENT = 0.445
+
     # Add the photos in a list, each format being in a dictionary
     PHOTOS = [
+        [Photo(1, 1.5, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_PORTRAIT)],
+        [Photo(1.5, 1, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_LANDSCAPE)],
+        [Photo(1, 1.3, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_PORTRAIT)],
+        [Photo(1.3, 1, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_LANDSCAPE)],
         # The width and height of the photos are reduced to the values of the
         # ratio
-        {"num": FORMAT_15_10_PORTRAIT, "width": 1, "height": 1.5},
-        {"num": FORMAT_15_10_LANDSCAPE, "width": 1.5, "height": 1},
-        {"num": FORMAT_13_10_PORTRAIT, "width": 1, "height": 1.3},
-        {"num": FORMAT_13_10_LANDSCAPE, "width": 1.3, "height": 1},
+        # {"num": FORMAT_15_10_PORTRAIT, "width": 1, "height": 1.5},
+        # {"num": FORMAT_15_10_LANDSCAPE, "width": 1.5, "height": 1},
+        # {"num": FORMAT_13_10_PORTRAIT, "width": 1, "height": 1.3},
+        # {"num": FORMAT_13_10_LANDSCAPE, "width": 1.3, "height": 1},
     ]
 
     # Get the axes of the plot
     fig, axs = plt.subplots()
     fig.canvas.manager.full_screen_toggle()
 
-    axs.grid(True, which='both')
+    # axs.grid(True, which='both')
     axs.axis('equal')
+
     # this locator puts ticks at regular intervals
     # loc = plticker.MultipleLocator(base=1.0)
     # axs.xaxis.set_major_locator(loc)
     # axs.yaxis.set_major_locator(loc)
 
-    CURVE_COEFFICIENT = 0.445
     photos = get_photos_array(PHOTOS, CURVE_COEFFICIENT)
-    random.shuffle(photos)
-    set_photos_name(photos)
+    # random.shuffle(photos)
+    # set_photos_name(photos)
 
     ts = np.linspace(-np.pi, np.pi, num=100)
     xs = curve.curve_x_function(ts, CURVE_COEFFICIENT)
@@ -233,7 +279,11 @@ if __name__ == "__main__":
 
     PHOTO_SPACE = 0.1
     POINT_UNIT = 0.5
-    place_photos_in_curve(photos, bl, tr, PHOTO_SPACE, POINT_UNIT, CURVE_COEFFICIENT)
+    result = generate_photo_permutations(photos)
+    for lst in result:
+        print(lst)
+    # place_photos_in_curve(photos, bl, tr, PHOTO_SPACE, POINT_UNIT, CURVE_COEFFICIENT)
+    axs.text(0, 0, "Some text", transform=axs.transAxes, fontsize=12)
 
     curve_area = curve.curve_area(CURVE_COEFFICIENT)
     print("Curve area : {}".format(curve_area))

@@ -7,10 +7,10 @@ import math
 class Photo:
 
     def __init__(self, width, height, curve_coefficient):
+        self.index = None
         self.width = width
         self.height = height
         self.curve_coefficient = curve_coefficient
-        self.name = "{}-{}".format(width, height)
         self.position = None
         self.shape = None
         self.tl = None
@@ -151,10 +151,13 @@ class Photo:
         return "Photo({}, {}, {}, {})".format(self.width, self.height, self.__center, self.name)
 
     def __repr__(self):
-        return "P{}".format(self.name)
+        return "P{}".format(self.index)
 
     def __eq__(self, other):
         return self.width == other.width and self.height == other.height
 
+    def __ne__(self, other):
+        return self.width != other.width or self.height != other.height
+
     def __hash__(self):
-        return self.name
+        return hash((self.width, self.height, self.index))

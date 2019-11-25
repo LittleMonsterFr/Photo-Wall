@@ -33,7 +33,14 @@ def recurse_photos(photo_list, rec_level):
         return
 
 
-def get_photos_array(photo_list: [[Photo]], curve_coefficient: float) -> [Photo]:
+def make_photo_list(pre_photos_list: [[Photo]]):
+    _photo_list = [item for sublist in pre_photos_list for item in sublist]
+    for i in range(len(_photo_list)):
+        _photo_list[i].index = i
+    return _photo_list
+
+
+def get_photos_array(photo_list: [Photo]) -> [Photo]:
     g_list = []
 
     valid_length = 0
@@ -58,11 +65,12 @@ def get_photos_array(photo_list: [[Photo]], curve_coefficient: float) -> [Photo]
 
     result_list = []
 
+
 def generate_photo_permutations(photo_list: [Photo]) -> [[Photo]]:
-    res = list(itertools.permutations(photo_list))
-    photo_set = set(res)
-    for photo_lst in res:
-        print(photo_lst)
+    res = itertools.permutations(photo_list)
+    photo_set = set()
+    for p in res:
+        photo_set.add(p)
         # photo_set.add(photo_lst)
 
     return photo_set
@@ -236,13 +244,9 @@ if __name__ == "__main__":
         [Photo(1.5, 1, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_LANDSCAPE)],
         [Photo(1, 1.3, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_PORTRAIT)],
         [Photo(1.3, 1, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_LANDSCAPE)],
-        # The width and height of the photos are reduced to the values of the
-        # ratio
-        # {"num": FORMAT_15_10_PORTRAIT, "width": 1, "height": 1.5},
-        # {"num": FORMAT_15_10_LANDSCAPE, "width": 1.5, "height": 1},
-        # {"num": FORMAT_13_10_PORTRAIT, "width": 1, "height": 1.3},
-        # {"num": FORMAT_13_10_LANDSCAPE, "width": 1.3, "height": 1},
     ]
+
+    PHOTOS = make_photo_list(PHOTOS)
 
     # Get the axes of the plot
     fig, axs = plt.subplots()
@@ -256,7 +260,6 @@ if __name__ == "__main__":
     # axs.xaxis.set_major_locator(loc)
     # axs.yaxis.set_major_locator(loc)
 
-    photos = get_photos_array(PHOTOS, CURVE_COEFFICIENT)
     # random.shuffle(photos)
     # set_photos_name(photos)
 
@@ -266,8 +269,8 @@ if __name__ == "__main__":
     bl = Point2D(min(xs), min(ys))
     tr = Point2D(max(xs), max(ys))
 
-    progressBar.print_progress_bar(0, len(photos), prefix='Progress:',
-                                   suffix='Complete', length=100)
+    # progressBar.print_progress_bar(0, len(photos), prefix='Progress:',
+    #                                suffix='Complete', length=100)
 
     # external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y),
     #                            fill=False)
@@ -279,7 +282,7 @@ if __name__ == "__main__":
 
     PHOTO_SPACE = 0.1
     POINT_UNIT = 0.5
-    result = generate_photo_permutations(photos)
+    result = generate_photo_permutations(PHOTOS)
     for lst in result:
         print(lst)
     # place_photos_in_curve(photos, bl, tr, PHOTO_SPACE, POINT_UNIT, CURVE_COEFFICIENT)

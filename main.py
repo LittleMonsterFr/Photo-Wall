@@ -1,4 +1,4 @@
-from photo import Photo
+from photo import Photo, PhotoFormat
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -12,25 +12,13 @@ from CoordinateGenerator import CoordinateGenerator, Side
 import math
 import sys
 import itertools
+import pickle
+from bitpacker import BitPacker
 
 
 def signal_handler(signum, frame):
     print()
     sys.exit(0)
-
-
-def set_photos_name(photo_list: [Photo]):
-    for photo in photo_list:
-        photo.name = photo_list.index(photo)
-
-
-def recurse_photos(photo_list, rec_level):
-    res = []
-    if rec_level >= 1:
-        for l in photo_list[len(photo_list) - rec_level]:
-            res += recurse_photos(photo_list, rec_level - 1)
-    else:
-        return
 
 
 def make_photo_list(pre_photos_list: [[Photo]]):
@@ -40,48 +28,36 @@ def make_photo_list(pre_photos_list: [[Photo]]):
     return _photo_list
 
 
-def get_photos_array(photo_list: [Photo]) -> [Photo]:
-    g_list = []
+def photo_list_to_string(photo_list: [Photo]) -> str:
+    res = ""
+    letter_count = 0
+    letter = photo_list[0].format_letter
+    for photo in photo_list:
+        if photo.format_letter != letter:
+            res += "{}{}".format(letter_count, letter)
+            letter = photo.format_letter
+            letter_count = 0
 
-    valid_length = 0
-    for l in photo_list:
-        sub_list = []
-        valid_length += len(l)
-        for index in range(1, len(l) + 1):
-            lst = l[0:index]
-            sub_list.append(lst)
-        g_list.append(sub_list)
+        letter_count += 1
 
-    res_iter = itertools.product(*g_list)
-    res = []
-    for tpl in res_iter:
-        res_lst = []
-        for lst in tpl:
-            for photo in lst:
-                res_lst.append(photo)
-        if len(res_lst) == valid_length:
-            res.append(res_lst)
-            print(res_lst)
-
-    result_list = []
+    res += "{}{}".format(letter_count, letter)
+    return res
 
 
-def generate_photo_permutations(photo_list: [Photo]) -> [[Photo]]:
-    res = itertools.permutations(photo_list)
+def generate_photo_permutations(photo_list: [Photo]):
+    photo_list_iter = itertools.permutations(photo_list)
     photo_set = set()
-    for p in res:
-        photo_set.add(p)
-        # photo_set.add(photo_lst)
+    for p_list in photo_list_iter:
+        p_list_str = photo_list_to_string(p_list)
+        photo_set.add(p_list_str)
 
-    return photo_set
-
-    # lst_1 = [photo_list[0], photo_list[0], photo_list[0]]
-    # lst_2 = [photo_list[0], photo_list[0], photo_list[0]]
+        if len(photo_set) % 100 == 0:
+            print("photo set len is {}".format(len(photo_set)))
 
 
 def plot_photo(p: Photo):
     axs.add_patch(p.shape)
-    plt.text(p.bl.x, p.bl.y, p.name, fontsize=8)
+    plt.text(p.bl.x, p.bl.y, p.index, fontsize=8)
     plt.text(p.bl.x + p.width / 2, p.bl.y + p.height / 2, p.position,
              fontsize=8)
     fig.canvas.draw()
@@ -231,22 +207,32 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
 
     # Define the number of photos for each format (width / height (cm))
-    FORMAT_15_10_PORTRAIT = 24
-    FORMAT_15_10_LANDSCAPE = 2
-    FORMAT_13_10_PORTRAIT = 9
-    FORMAT_13_10_LANDSCAPE = 6
+    FORMAT_15_10_PORTRAIT_COUNT = 24
+    FORMAT_15_10_LANDSCAPE_COUNT = 2
+    FORMAT_13_10_PORTRAIT_COUNT = 9
+    FORMAT_13_10_LANDSCAPE_COUNT = 6
 
     CURVE_COEFFICIENT = 0.445
+    PHOTO_SPACE = 0.1
+    POINT_UNIT = 0.5
 
     # Add the photos in a list, each format being in a dictionary
     PHOTOS = [
-        [Photo(1, 1.5, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_PORTRAIT)],
-        [Photo(1.5, 1, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_LANDSCAPE)],
-        [Photo(1, 1.3, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_PORTRAIT)],
-        [Photo(1.3, 1, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_LANDSCAPE)],
+        [Photo(1, 1.5, PhotoFormat.FORMAT_13_10_PORTRAIT, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_PORTRAIT_COUNT)],
+        [Photo(1.5, 1, PhotoFormat.FORMAT_15_10_LANDSCAPE, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_LANDSCAPE_COUNT)],
+        [Photo(1, 1.3, PhotoFormat.FORMAT_13_10_PORTRAIT, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_PORTRAIT_COUNT)],
+        [Photo(1.3, 1, PhotoFormat.FORMAT_13_10_LANDSCAPE, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_LANDSCAPE_COUNT)],
     ]
 
     PHOTOS = make_photo_list(PHOTOS)
+
+    bit_packer = BitPacker()
+    # bits = bit_packer.append(PHOTOS)
+    # photo_list_str = photo_list_to_string(PHOTOS)
+
+    generate_photo_permutations(PHOTOS)
+
+    exit(0)
 
     # Get the axes of the plot
     fig, axs = plt.subplots()
@@ -280,11 +266,6 @@ if __name__ == "__main__":
 
     plt.show(block=False)
 
-    PHOTO_SPACE = 0.1
-    POINT_UNIT = 0.5
-    result = generate_photo_permutations(PHOTOS)
-    for lst in result:
-        print(lst)
     # place_photos_in_curve(photos, bl, tr, PHOTO_SPACE, POINT_UNIT, CURVE_COEFFICIENT)
     axs.text(0, 0, "Some text", transform=axs.transAxes, fontsize=12)
 
@@ -292,8 +273,8 @@ if __name__ == "__main__":
     print("Curve area : {}".format(curve_area))
 
     area_sum = 0
-    for p in photos:
-        area_sum += p.width * p.height
+    # for p in photos:
+    #     area_sum += p.width * p.height
         # print(str(p))
 
     print("Photos area : {}".format(area_sum))

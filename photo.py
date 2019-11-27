@@ -2,15 +2,24 @@ from matplotlib.patches import Rectangle
 from point2D import Point2D
 import curve
 import math
+import enum
+
+
+class PhotoFormat(enum.Enum):
+    FORMAT_15_10_PORTRAIT = 0b00000000
+    FORMAT_15_10_LANDSCAPE = 0b00000001
+    FORMAT_13_10_PORTRAIT = 0b00000010
+    FORMAT_13_10_LANDSCAPE = 0b00000011
 
 
 class Photo:
 
-    def __init__(self, width, height, curve_coefficient):
+    def __init__(self, width, height, photo_format, curve_coefficient):
         self.index = None
         self.width = width
         self.height = height
         self.curve_coefficient = curve_coefficient
+        self.photo_format = photo_format
         self.position = None
         self.shape = None
         self.tl = None
@@ -19,6 +28,17 @@ class Photo:
         self.bl = None
         self.__center = None
         self.neighbours = set()
+
+    @property
+    def format_letter(self):
+        if self.photo_format == PhotoFormat.FORMAT_15_10_PORTRAIT:
+            return "A"
+        elif self.photo_format == PhotoFormat.FORMAT_15_10_LANDSCAPE:
+            return "B"
+        elif self.photo_format == PhotoFormat.FORMAT_13_10_PORTRAIT:
+            return "C"
+        else:
+            return "D"
 
     def set_center(self, center_point: Point2D):
         self.__center = center_point
@@ -154,10 +174,10 @@ class Photo:
         return "P{}".format(self.index)
 
     def __eq__(self, other):
-        return self.width == other.width and self.height == other.height
+        return self.photo_format == other.photo_format
 
     def __ne__(self, other):
-        return self.width != other.width or self.height != other.height
+        return self.photo_format != other.photo_format
 
     def __hash__(self):
-        return hash((self.width, self.height, self.index))
+        return hash((self.photo_format, self.index))

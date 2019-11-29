@@ -1,3 +1,4 @@
+from __future__ import annotations
 from matplotlib.patches import Rectangle
 from point2D import Point2D
 import curve
@@ -14,11 +15,22 @@ class PhotoFormat(enum.Enum):
 
 class Photo:
 
-    def __init__(self, width, height, photo_format, curve_coefficient):
+    def __init__(self, photo_format):
         self.index = None
-        self.width = width
-        self.height = height
-        self.curve_coefficient = curve_coefficient
+        if photo_format == PhotoFormat.FORMAT_15_10_PORTRAIT:
+            self.width = 1
+            self.height = 1.5
+        elif photo_format == PhotoFormat.FORMAT_15_10_LANDSCAPE:
+            self.width = 1.5
+            self.height = 1
+        elif photo_format == PhotoFormat.FORMAT_13_10_PORTRAIT:
+            self.width = 1
+            self.height = 1.3
+        elif photo_format == PhotoFormat.FORMAT_13_10_LANDSCAPE:
+            self.width = 1.3
+            self.height = 1
+        else:
+            raise Exception
         self.photo_format = photo_format
         self.position = None
         self.shape = None
@@ -29,16 +41,14 @@ class Photo:
         self.__center = None
         self.neighbours = set()
 
-    @property
-    def format_letter(self):
-        if self.photo_format == PhotoFormat.FORMAT_15_10_PORTRAIT:
-            return "A"
-        elif self.photo_format == PhotoFormat.FORMAT_15_10_LANDSCAPE:
-            return "B"
-        elif self.photo_format == PhotoFormat.FORMAT_13_10_PORTRAIT:
-            return "C"
-        else:
-            return "D"
+    def to_letter(self):
+        return chr(ord("A") + self.photo_format.value)
+
+    @staticmethod
+    def from_letter(letter: str) -> Photo:
+        format_value = ord(letter) - ord("A")
+        enum_val = PhotoFormat(format_value)
+        return Photo(enum_val)
 
     def set_center(self, center_point: Point2D):
         self.__center = center_point
@@ -92,12 +102,12 @@ class Photo:
 
         return res
 
-    def is_in_curve(self):
+    def is_in_curve(self, curve_coefficient):
         for point in [self.tl, self.tr, self.br, self.bl, self.__center]:
-            if not curve.is_point_in_curve(point, self.curve_coefficient):
+            if not curve.is_point_in_curve(point, curve_coefficient):
                 return False
 
-        y0 = curve.curve_y_function(0, self.curve_coefficient)
+        y0 = curve.curve_y_function(0, curve_coefficient)
 
         if self.tl.y >= y0 and (self.tl.x * self.tr.x) < 0:
             return False
@@ -168,10 +178,10 @@ class Photo:
                (self.bl.y <= other.bl.y and other.tl.y <= self.tl.y)
 
     def __str__(self):
-        return "Photo({}, {}, {}, {})".format(self.width, self.height, self.__center, self.name)
+        return "Photo({}, {})".format(self.to_letter(), self.__center)
 
     def __repr__(self):
-        return "P{}".format(self.index)
+        return "P{}".format(self.to_letter())
 
     def __eq__(self, other):
         return self.photo_format == other.photo_format

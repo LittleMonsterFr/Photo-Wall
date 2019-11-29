@@ -31,11 +31,11 @@ def make_photo_list(pre_photos_list: [[Photo]]):
 def photo_list_to_string(photo_list: [Photo]) -> str:
     res = ""
     letter_count = 0
-    letter = photo_list[0].format_letter
+    letter = photo_list[0].to_letter()
     for photo in photo_list:
-        if photo.format_letter != letter:
+        if photo.to_letter() != letter:
             res += "{}{}".format(letter_count, letter)
-            letter = photo.format_letter
+            letter = photo.to_letter()
             letter_count = 0
 
         letter_count += 1
@@ -44,15 +44,30 @@ def photo_list_to_string(photo_list: [Photo]) -> str:
     return res
 
 
+def photo_list_from_string(list_string: str) -> [Photo]:
+    num = ""
+    res = []
+    for char in list_string:
+        if char.isdigit():
+            num += char
+        elif char.isalpha():
+            count = int(num)
+            for i in range(count):
+                res.append(Photo.from_letter(char))
+            num = ""
+    return res
+
+
 def generate_photo_permutations(photo_list: [Photo]):
     photo_list_iter = itertools.permutations(photo_list)
-    photo_set = set()
+    res_set = set()
     for p_list in photo_list_iter:
         p_list_str = photo_list_to_string(p_list)
-        photo_set.add(p_list_str)
+        res_set.add(p_list_str)
 
-        if len(photo_set) % 100 == 0:
-            print("photo set len is {}".format(len(photo_set)))
+        if len(res_set) == 5:
+            print("photo set len is {}".format(len(res_set)))
+            return res_set
 
 
 def plot_photo(p: Photo):
@@ -87,7 +102,7 @@ def place_photos_in_curve(photo_list, blp, trp, photo_space, point_unit, curve_c
                 # Assign the corners of the photo
                 photo.set_center(Point2D(x_curr, y_curr))
                 # Skip if all the corners are not in the curve
-                if not photo.is_in_curve():
+                if not photo.is_in_curve(curve_coefficient):
                     # Clear the coordinates previously set to avoid corruption
                     photo.clear_coords()
                     continue
@@ -165,7 +180,7 @@ def place_photos_in_curve(photo_list, blp, trp, photo_space, point_unit, curve_c
                     photo.set_center(Point2D(x_temp, y_temp))
                     photo_fits = True
 
-                    if not photo.is_in_curve():
+                    if not photo.is_in_curve(curve_coefficient):
                         photo_fits = False
 
                     while photo_fits:
@@ -218,19 +233,22 @@ if __name__ == "__main__":
 
     # Add the photos in a list, each format being in a dictionary
     PHOTOS = [
-        [Photo(1, 1.5, PhotoFormat.FORMAT_13_10_PORTRAIT, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_PORTRAIT_COUNT)],
-        [Photo(1.5, 1, PhotoFormat.FORMAT_15_10_LANDSCAPE, CURVE_COEFFICIENT) for _ in range(FORMAT_15_10_LANDSCAPE_COUNT)],
-        [Photo(1, 1.3, PhotoFormat.FORMAT_13_10_PORTRAIT, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_PORTRAIT_COUNT)],
-        [Photo(1.3, 1, PhotoFormat.FORMAT_13_10_LANDSCAPE, CURVE_COEFFICIENT) for _ in range(FORMAT_13_10_LANDSCAPE_COUNT)],
+        [Photo(PhotoFormat.FORMAT_15_10_PORTRAIT) for _ in range(FORMAT_15_10_PORTRAIT_COUNT)],
+        [Photo(PhotoFormat.FORMAT_15_10_LANDSCAPE) for _ in range(FORMAT_15_10_LANDSCAPE_COUNT)],
+        [Photo(PhotoFormat.FORMAT_13_10_PORTRAIT) for _ in range(FORMAT_13_10_PORTRAIT_COUNT)],
+        [Photo(PhotoFormat.FORMAT_13_10_LANDSCAPE) for _ in range(FORMAT_13_10_LANDSCAPE_COUNT)],
     ]
 
     PHOTOS = make_photo_list(PHOTOS)
+    photo_set = generate_photo_permutations(PHOTOS)
 
-    bit_packer = BitPacker()
-    # bits = bit_packer.append(PHOTOS)
-    # photo_list_str = photo_list_to_string(PHOTOS)
+    f = open("photo_set.bin", "wb+")
+    bit_packer = BitPacker(f)
 
-    generate_photo_permutations(PHOTOS)
+    for format_str in photo_set:
+        reconstructed_photo_list = photo_list_from_string(format_str)
+        bit_packer.append(reconstructed_photo_list)
+    bit_packer.finish()
 
     exit(0)
 

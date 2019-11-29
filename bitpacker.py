@@ -1,12 +1,14 @@
 from photo import Photo
+from typing import BinaryIO
 
 
 class BitPacker:
 
-    def __init__(self):
+    def __init__(self, file: BinaryIO):
         self.bits_count = 0
         self.bytes = []
         self.value = 0
+        self.file = file
 
     def append(self, photo_list: [Photo]):
         for i in range(len(photo_list)):
@@ -15,6 +17,11 @@ class BitPacker:
             self.bits_count += 2
 
             if self.bits_count == 8:
-                self.bytes.append(self.value)
+                b = bytes(self.value)
+                self.file.write(b)
+                print(self.value)
                 self.value = 0
                 self.bits_count = 0
+
+    def finish(self):
+        self.file.write(bytes(self.value))

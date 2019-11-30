@@ -21,29 +21,6 @@ def signal_handler(signum, frame):
     sys.exit(0)
 
 
-def make_photo_list(pre_photos_list: [[Photo]]):
-    _photo_list = [item for sublist in pre_photos_list for item in sublist]
-    for i in range(len(_photo_list)):
-        _photo_list[i].index = i
-    return _photo_list
-
-
-def photo_list_to_string(photo_list: [Photo]) -> str:
-    res = ""
-    letter_count = 0
-    letter = photo_list[0].to_letter()
-    for photo in photo_list:
-        if photo.to_letter() != letter:
-            res += "{}{}".format(letter_count, letter)
-            letter = photo.to_letter()
-            letter_count = 0
-
-        letter_count += 1
-
-    res += "{}{}".format(letter_count, letter)
-    return res
-
-
 def photo_list_from_string(list_string: str) -> [Photo]:
     num = ""
     res = []
@@ -56,18 +33,6 @@ def photo_list_from_string(list_string: str) -> [Photo]:
                 res.append(Photo.from_letter(char))
             num = ""
     return res
-
-
-def generate_photo_permutations(photo_list: [Photo]):
-    photo_list_iter = itertools.permutations(photo_list)
-    res_set = set()
-    for p_list in photo_list_iter:
-        p_list_str = photo_list_to_string(p_list)
-        res_set.add(p_list_str)
-
-        if len(res_set) == 5:
-            print("photo set len is {}".format(len(res_set)))
-            return res_set
 
 
 def plot_photo(p: Photo):
@@ -221,34 +186,9 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
 
-    # Define the number of photos for each format (width / height (cm))
-    FORMAT_15_10_PORTRAIT_COUNT = 24
-    FORMAT_15_10_LANDSCAPE_COUNT = 2
-    FORMAT_13_10_PORTRAIT_COUNT = 9
-    FORMAT_13_10_LANDSCAPE_COUNT = 6
-
     CURVE_COEFFICIENT = 0.445
     PHOTO_SPACE = 0.1
     POINT_UNIT = 0.5
-
-    # Add the photos in a list, each format being in a dictionary
-    PHOTOS = [
-        [Photo(PhotoFormat.FORMAT_15_10_PORTRAIT) for _ in range(FORMAT_15_10_PORTRAIT_COUNT)],
-        [Photo(PhotoFormat.FORMAT_15_10_LANDSCAPE) for _ in range(FORMAT_15_10_LANDSCAPE_COUNT)],
-        [Photo(PhotoFormat.FORMAT_13_10_PORTRAIT) for _ in range(FORMAT_13_10_PORTRAIT_COUNT)],
-        [Photo(PhotoFormat.FORMAT_13_10_LANDSCAPE) for _ in range(FORMAT_13_10_LANDSCAPE_COUNT)],
-    ]
-
-    PHOTOS = make_photo_list(PHOTOS)
-    photo_set = generate_photo_permutations(PHOTOS)
-
-    f = open("photo_set.bin", "wb+")
-    bit_packer = BitPacker(f)
-
-    for format_str in photo_set:
-        reconstructed_photo_list = photo_list_from_string(format_str)
-        bit_packer.append(reconstructed_photo_list)
-    bit_packer.finish()
 
     exit(0)
 

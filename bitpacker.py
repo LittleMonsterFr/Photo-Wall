@@ -1,5 +1,6 @@
 from photo import Photo
 from typing import BinaryIO
+import sys
 
 
 class BitPacker:
@@ -17,11 +18,11 @@ class BitPacker:
             self.bits_count += 2
 
             if self.bits_count == 8:
-                b = bytes(self.value)
+                b = self.value.to_bytes(1, byteorder=sys.byteorder)
                 self.file.write(b)
-                print(self.value)
                 self.value = 0
                 self.bits_count = 0
 
     def finish(self):
-        self.file.write(bytes(self.value))
+        b = self.value << (8 - self.bits_count)
+        self.file.write(b.to_bytes(1, byteorder=sys.byteorder))

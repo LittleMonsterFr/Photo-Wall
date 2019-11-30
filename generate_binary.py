@@ -51,7 +51,7 @@ def photo_list_from_string(list_string: str) -> [Photo]:
 
 def verify_binary_size(set_length: int, photo_list_bit_length: int, binary_name: str) -> bool:
     stat_info = os.stat(binary_name)
-    return math.ceil(set_length * photo_list_bit_length / 8) == stat_info.st_size
+    return math.ceil(set_length * photo_list_bit_length / 8.0) == stat_info.st_size
 
 
 def generate_photo_permutations(photo_list: [Photo]):
@@ -114,6 +114,7 @@ if __name__ == "__main__":
     elapsedTime = end - start
 
     print("\nGeneration done in {}".format(elapsedTime / timedelta(minutes=1)))
+    print("{} elements in the set.".format(len(photo_set)))
 
     print("File size is {}".format("correct" if file_is_correct_size else "incorrect"))
 

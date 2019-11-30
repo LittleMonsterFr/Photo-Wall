@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     elapsedTime = end - start
 
-    print("\nGeneration done in {}".format(elapsedTime / timedelta(minutes=1)))
+    print("\nGeneration done in {} minutes".format(elapsedTime / timedelta(minutes=1)))
     print("{} elements in the set.".format(len(photo_set)))
 
     print("File size is {}".format("correct" if file_is_correct_size else "incorrect"))

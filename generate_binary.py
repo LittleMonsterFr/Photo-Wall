@@ -4,6 +4,12 @@ from bitpacker import BitPacker
 import os
 import math
 from datetime import datetime, timedelta
+import signal
+
+
+def signal_handler(number, frame):
+    global stop
+    stop = True
 
 
 def make_photo_list(double_photo_array: [[Photo]]) -> [Photo]:
@@ -55,10 +61,19 @@ def generate_photo_permutations(photo_list: [Photo]):
         p_list_str = photo_list_to_string(p_list)
         res_set.add(p_list_str)
 
+        if len(res_set) % 100 == 0:
+            print("{} : {} items".format(datetime.now(), len(res_set)))
+
+        if stop:
+            break
+
     return res_set
 
 
 if __name__ == "__main__":
+
+    signal.signal(signal.SIGINT, signal_handler)
+    stop = False
 
     start = datetime.now()
 
@@ -98,7 +113,7 @@ if __name__ == "__main__":
 
     elapsedTime = end - start
 
-    print("Generation done in {}".format(elapsedTime / timedelta(minutes=1)))
+    print("\nGeneration done in {}".format(elapsedTime / timedelta(minutes=1)))
 
     print("File size is {}".format("correct" if file_is_correct_size else "incorrect"))
 

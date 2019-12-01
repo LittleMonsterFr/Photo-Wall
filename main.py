@@ -14,6 +14,7 @@ import sys
 import itertools
 import pickle
 from bitpacker import BitPacker
+from extract_binary import extract_binary
 
 
 def signal_handler(signum, frame):
@@ -45,7 +46,7 @@ def plot_photo(p: Photo):
 
 def place_photos_in_curve(photo_list, blp, trp, photo_space, point_unit, curve_coefficient):
     coordinate_generator = CoordinateGenerator(blp.x, trp.x, bl.y, tr.y, point_unit)
-    updated_photo_list = list(photo_list)
+    photos_left = list(photo_list)
     pos = 0
     coord = coordinate_generator.get_start()
 
@@ -62,7 +63,7 @@ def place_photos_in_curve(photo_list, blp, trp, photo_space, point_unit, curve_c
 
         if curve.is_point_in_curve(Point2D(x_curr, y_curr), curve_coefficient):
 
-            for photo in updated_photo_list:
+            for photo in photos_left:
 
                 # Assign the corners of the photo
                 photo.set_center(Point2D(x_curr, y_curr))
@@ -128,8 +129,8 @@ def place_photos_in_curve(photo_list, blp, trp, photo_space, point_unit, curve_c
 
                 side = coordinate_generator.get_curve_side(x_curr)
                 if ((side == Side.LEFT and len(right) > 0) or
-                    (side == Side.RIGHT and len(left) > 0) or
-                   side == Side.MIDDLE):
+                        (side == Side.RIGHT and len(left) > 0) or
+                        side == Side.MIDDLE):
 
                     if side == Side.LEFT:
                         x_temp = right[0].bl.x - photo_space - photo.width / 2
@@ -167,16 +168,16 @@ def place_photos_in_curve(photo_list, blp, trp, photo_space, point_unit, curve_c
                 photo.position = pos
                 pos += 1
                 plot_photo(photo)
-                updated_photo_list.remove(photo)
+                photos_left.remove(photo)
                 break
 
-        if len(updated_photo_list) == 0:
+        if len(photos_left) == 0:
             break
 
         coord = coordinate_generator.get_next_point(x_curr, y_curr)
 
-    print("\n{} photos left : {}".format(len(updated_photo_list),
-                                         updated_photo_list))
+    return [p for p in photo_list if p not in photos_left]
+    # photo_list - photos_left
 
 
 if __name__ == "__main__":
@@ -189,8 +190,6 @@ if __name__ == "__main__":
     CURVE_COEFFICIENT = 0.445
     PHOTO_SPACE = 0.1
     POINT_UNIT = 0.5
-
-    exit(0)
 
     # Get the axes of the plot
     fig, axs = plt.subplots()
@@ -213,27 +212,31 @@ if __name__ == "__main__":
     bl = Point2D(min(xs), min(ys))
     tr = Point2D(max(xs), max(ys))
 
-    # progressBar.print_progress_bar(0, len(photos), prefix='Progress:',
-    #                                suffix='Complete', length=100)
+    list_of_photo_list = extract_binary()
 
-    # external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y),
-    #                            fill=False)
-    # axs.add_patch(external_heart)
+    photo_list = list_of_photo_list[500]
+
+    progressBar.print_progress_bar(0, len(photo_list), prefix='Progress:',
+                                   suffix='Complete', length=100)
+
+    external_heart = Rectangle((bl.x, bl.y), abs(tr.x - bl.x), abs(tr.y - bl.y),
+                               fill=False)
+    axs.add_patch(external_heart)
     plt.fill(xs, ys, "g", zorder=0)
     plt.axis('off')
 
     plt.show(block=False)
 
-    # place_photos_in_curve(photos, bl, tr, PHOTO_SPACE, POINT_UNIT, CURVE_COEFFICIENT)
+    remaining_photos = place_photos_in_curve(photo_list, bl, tr, PHOTO_SPACE, POINT_UNIT, CURVE_COEFFICIENT)
     axs.text(0, 0, "Some text", transform=axs.transAxes, fontsize=12)
 
     curve_area = curve.curve_area(CURVE_COEFFICIENT)
     print("Curve area : {}".format(curve_area))
 
     area_sum = 0
-    # for p in photos:
-    #     area_sum += p.width * p.height
-        # print(str(p))
+    for p in remaining_photos:
+        area_sum += p.width * p.height
+    print(str(area_sum))
 
     print("Photos area : {}".format(area_sum))
     print("Coverage : {:2f} %".format(area_sum * 100 / curve_area))

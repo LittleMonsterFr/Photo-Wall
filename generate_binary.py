@@ -105,7 +105,7 @@ if __name__ == "__main__":
             reconstructed_photo_list = photo_list_from_string(format_str)
             bit_packer.append(reconstructed_photo_list)
 
-        bit_packer.finish()
+        bit_packer.append_finish()
 
     file_is_correct_size = verify_binary_size(len(photo_set), len(photos) * 2, file_name)
 
